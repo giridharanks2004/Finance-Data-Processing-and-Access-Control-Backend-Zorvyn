@@ -8,7 +8,8 @@ const UserModelSchema = new mongoose.Schema({
         lowercase : true,
         trim : true,
         match : [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Please use a valid email address"],
-        index : true
+        index : true,
+        unique : true
     },
     password : {
         type : String,

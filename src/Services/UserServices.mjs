@@ -4,18 +4,24 @@ import bcrypt from "bcrypt"
 import { Exceptions } from "../Utils/exceptions.mjs";
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
-import { UserStatus } from "../Utils/enums.mjs";
+import { UserRoles, UserStatus } from "../Utils/enums.mjs";
 
 dotenv.config()
 
 const createUser = async (userInfo) => {
     const encryptedPwd = await bcrypt.hash(userInfo.password,10)
+    let message = "UserCreated"
+    
+    if(userInfo.role === UserRoles[0]){
+        userInfo.role = UserRoles[2]
+        message = "UserCreated with role being USER request for ADMIN updation to admin"
+    }
 
     userInfo.password = encryptedPwd
 
     const saved = await UserDB.create(userInfo)
 
-    return UserResponseDTO(userInfo, "UserCreated")
+    return UserResponseDTO(saved , message)
 }
 
 const getAllUser = async () => {
@@ -27,7 +33,10 @@ const getAllUser = async () => {
     return abstractedSavedInfos
 }
 const loginUser = async (userInfo) => {
-    const savedInfo = await UserDB.find({email : userInfo.email})
+    const savedInfo = await UserDB.findOne({email : userInfo.email})
+
+    console.log(savedInfo)
+    
 
     if(!savedInfo){
         throw new Error(Exceptions.UserNotFound.msg)
@@ -39,12 +48,7 @@ const loginUser = async (userInfo) => {
         throw new Error(Exceptions.UnAuthorised.msg)
     }
 
-    const token = jwt.sign({
-        id : userInfo._id,
-        email : userInfo.email,
-        role : userInfo.role,
-        status : userInfo.status,
-    },process.env.JWT_SECRET);
+    const token = jwt.sign({id : savedInfo._id,email : savedInfo.email,role : savedInfo.role,status : savedInfo.status},process.env.JWT_SECRET,{expiresIn : "1hr"});  
 
     return token;
 }
