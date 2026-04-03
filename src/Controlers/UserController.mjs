@@ -20,7 +20,7 @@ export const createUser = async (req,res) => {
         }
         const saved = await UserServices.createUser(matchedData(req))
 
-        return res.status(200).json(saved)
+        return res.status(201).json(saved)
     } catch (e) {
         if (e.name === "ValidationError") {
             return res.status(400).json({
@@ -106,11 +106,200 @@ export const getUserById = async (req,res) => {
     }
 }
 
-export const logoutUser = (req,res) => {
-    if(req.cookies.authtoken){
-        res.clearCookie("authtoken")
-        res.status(200).json({msg : "logged out pls login to continue"})
+export const updateUserEmail = async (req,res)=> {
+    const payload = req.user
+    const {newEmail} = req.body
+
+   
+
+    if(!payload.id || !mongoose.Types.ObjectId.isValid(payload.id)){
+        return res.status(400).json({
+            msg : "enter proper object id"
+        })
+
     }
 
-    res.status(401).json(Exceptions.UnAuthorised)
+    try {
+        const updatedUser = await UserServices.UpdateEmail(payload.id,newEmail)
+        return res.status(200).json(updatedUser)
+        
+    } catch (e) {
+        if(e.message === Exceptions.UserNotFound.msg){
+            return res.status(404).json(Exceptions.UserNotFound)
+        }
+        if(e.message === Exceptions.UnAuthorised.msg){
+            return res.status(404).json(Exceptions.UnAuthorised)
+        }
+
+        return res.status(500).json({
+            status : 500,
+            error : "Internal Server Error",
+            msg : e.message
+
+        })
+    }
+
+}
+
+export const updateUserStatus = async (req,res) => {
+    const payload = req.user
+
+    if(!payload.id || !mongoose.Types.ObjectId.isValid(payload.id)){
+        return res.status(400).json({
+            msg : "send a proper object id for proper updation"
+        })
+    }
+
+    try {
+        const updatedUser = await UserServices.UpdateStatus(payload.id)
+        
+        return res.status(200).send(updatedUser)
+    } catch (e) {
+        if(e.message === Exceptions.UserNotFound.msg){
+            return res.status(404).json(Exceptions.UserNotFound)
+        }
+        if(e.message === Exceptions.UnAuthorised.msg){
+            return res.status(404).json(Exceptions.UnAuthorised)
+        }
+
+        return res.status(500).json({
+            status : 500,
+            error : "Internal Server Error",
+            msg : e.message
+
+        }) 
+    }
+}
+
+export const updateUserPassword = async (req,res) => {
+    const payload = req.user
+    const {oldPassword , newPassword} = req.body
+    if(!payload.id || !mongoose.Types.ObjectId.isValid(payload.id)){
+        return res.status(400).json({
+            msg : "send a proper object id for proper updation"
+        })
+    }
+
+    try {
+        const updatedUser = await UserServices.UpdatePassword(payload.id,oldPassword,newPassword)
+
+        logoutUser(req,res,updatedUser.msg)
+
+    
+    } catch (e) {
+        if(e.message === Exceptions.UserNotFound.msg){
+            return res.status(404).json(Exceptions.UserNotFound)
+        }
+        if(e.message === Exceptions.UnAuthorised.msg){
+            return res.status(404).json(Exceptions.UnAuthorised)
+        }
+        
+        return res.status(500).json({
+            status : 500,
+            error : "Internal Server Error",
+            msg : e.message
+
+        })
+    }
+}
+
+export const getUserDetails = async (req,res) => {
+    const payload = req.user
+    if(!payload.id || !mongoose.Types.ObjectId.isValid(payload.id)){
+        return res.status(400).json({
+            msg : "send a proper object id for proper updation"
+        })
+    }
+
+    try {
+        const userDetails = await UserServices.getUserById(payload.id)
+
+        return res.status(200).json(userDetails)
+    } catch (e) {
+        if(e.message === Exceptions.UserNotFound.msg){
+            return res.status(404).json(Exceptions.UserNotFound)
+        }
+        if(e.message === Exceptions.UnAuthorised.msg){
+            return res.status(404).json(Exceptions.UnAuthorised)
+        }
+        
+        return res.status(500).json({
+            status : 500,
+            error : "Internal Server Error",
+            msg : e.message
+
+        })
+    }
+}
+export const updateUserRole = async (req,res) => {
+    const {id} = req.params
+    const {newRole} = req.body
+
+    if(!id || !mongoose.Types.ObjectId.isValid(id)){
+        return res.status(400).json({
+            msg : "send a proper object id for proper updation"
+        })
+    }
+
+    try {
+
+        const updatedUser = await UserServices.UpdateUserRole(id,newRole)
+
+        return res.status(200).json(updatedUser)
+        
+    } catch (e) {
+        if(e.message === Exceptions.UserNotFound.msg){
+            return res.status(404).json(Exceptions.UserNotFound)
+        }
+        if(e.message === Exceptions.UnAuthorised.msg){
+            return res.status(404).json(Exceptions.UnAuthorised)
+        }
+        
+        return res.status(500).json({
+            status : 500,
+            error : "Internal Server Error",
+            msg : e.message
+
+        })
+    }
+}
+export const deleteUser = async (req,res) => {
+    const payload = req.user
+    if(!payload.id || !mongoose.Types.ObjectId.isValid(payload.id)){
+        return res.status(400).json({
+            msg : "send a proper object id for proper updation"
+        })
+    }
+
+    try {
+        await UserServices.DeleteUser(payload.id)
+
+        logoutUser(req,res,"account deleted successfully!")
+        
+    } catch (e) {
+        if(e.message === Exceptions.UserNotFound.msg){
+            return res.status(404).json(Exceptions.UserNotFound)
+        }
+        if(e.message === Exceptions.UnAuthorised.msg){
+            return res.status(404).json(Exceptions.UnAuthorised)
+        }
+        
+        return res.status(500).json({
+            status : 500,
+            error : "Internal Server Error",
+            msg : e.message
+
+        })
+    }
+}
+export const logoutUser = (req,res, message) => {
+    if(req.cookies.authtoken){
+        res.clearCookie("authtoken")
+        if(message){
+            return res.status(200).json({msg : message})
+        }
+        return res.status(200).json({msg : "logged out pls login to continue"})
+    }
+
+    return res.status(401).json(Exceptions.UnAuthorised)
 } 

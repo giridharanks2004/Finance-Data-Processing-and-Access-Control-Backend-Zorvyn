@@ -48,7 +48,7 @@ const loginUser = async (userInfo) => {
         throw new Error(Exceptions.UnAuthorised.msg)
     }
 
-    const token = jwt.sign({id : savedInfo._id,email : savedInfo.email,role : savedInfo.role,status : savedInfo.status},process.env.JWT_SECRET,{expiresIn : "1hr"});  
+    const token = jwt.sign({id : savedInfo._id,email : savedInfo.email,role : savedInfo.role},process.env.JWT_SECRET,{expiresIn : "1hr"});  
 
     return token;
 }
@@ -94,7 +94,7 @@ const UpdateStatus = async (id) => {
      
     await savedInfo.save()
 
-    return UserResponseDTO(savedInfo,UserStatusUpdated)
+    return UserResponseDTO(savedInfo,"UserStatusUpdated")
 }
 
 const UpdatePassword = async (id , oldPass, newPass) => {
@@ -112,7 +112,11 @@ const UpdatePassword = async (id , oldPass, newPass) => {
 
     savedInfo.password = await bcrypt.hash(newPass,10)
 
-    return UserResponseDTO(savedInfo,"UserPasswordUpdated")
+    await savedInfo.save()
+
+    return UserResponseDTO(savedInfo,"UserPasswordUpdated Login again")
+
+    
 
 }
 
