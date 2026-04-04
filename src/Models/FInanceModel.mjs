@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ExpenseCategories, FinanceType } from "../Utils/enums.mjs";
+import { ExpenseCategories, FinanceType, SupportedCurrencies } from "../Utils/enums.mjs";
 
 const FinanceModelSchema = new mongoose.Schema({
     userId : {
@@ -12,6 +12,12 @@ const FinanceModelSchema = new mongoose.Schema({
         type : Number,
         required : true
     },
+    currency : {
+        type : String,
+        enum : SupportedCurrencies,
+        default : "INR",
+        required : false
+    },
     RecordType : {
         type : String,
         enum : FinanceType,
@@ -22,6 +28,7 @@ const FinanceModelSchema = new mongoose.Schema({
         enum : ExpenseCategories,
         required : true, 
     },
+
     description : {
         type : String,
         default : ""

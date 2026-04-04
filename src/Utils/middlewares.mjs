@@ -1,4 +1,5 @@
 import dotenv from "dotenv"
+import { validationResult } from "express-validator"
 
 dotenv.config()
 
@@ -29,4 +30,14 @@ export const RoleCheck = (...allowedRoles) => {
 
         next()
     }
+}
+
+export const ValidationResultCheck = (req , res , next) => {
+    const results = validationResult(req)
+
+    if(!results.isEmpty()){
+        return res.status(400).json(results.array())
+    }
+
+    next()
 }

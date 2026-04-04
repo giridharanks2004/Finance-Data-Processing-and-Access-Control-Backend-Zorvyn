@@ -14,10 +14,7 @@ export const getAllUser = async (req, res) => {
 
 export const createUser = async (req,res) => {
     try {
-        const result = validationResult(req)
-        if(!result.isEmpty()){
-            return res.status(400).json({...result.array()})
-        }
+        
         const saved = await UserServices.createUser(matchedData(req))
 
         return res.status(201).json(saved)
@@ -48,18 +45,18 @@ export const loginUser = async (req,res) => {
         console.log(req.body)
         const token = await UserServices.loginUser(matchedData(req))
         
-        res.cookie("authtoken",token,{maxAge : 60 * 60 * 1000, sameSite : "Strict"})
+        res.cookie("authtoken",token,{maxAge : 60 * 60 * 1000 * 24, sameSite : "Strict"})
 
         return res.status(200).json({
             msg : "logged in successfully"
         })
 
     } catch (e) {
-        if(e.message === Exceptions.UserNotFound.message){
-            return res.status(404).json(Exceptions.UserNotFound)
+        if(e.message === Exceptions.Users.UserNotFound.message){
+            return res.status(404).json(Exceptions.Users.UserNotFound)
         }
-        if(e.message === Exceptions.UnAuthorised.message){
-            return res.status(401).json(Exceptions.UnAuthorised)
+        if(e.message === Exceptions.Users.UnAuthorised.message){
+            return res.status(401).json(Exceptions.Users.UnAuthorised)
         }
 
         return res.status(500).json({
@@ -96,8 +93,8 @@ export const getUserById = async (req,res) => {
         return res.status(200).json(savedUser)
         
     } catch(e){
-        if(e.message === Exceptions.UserNotFound.message){
-            return res.status(404).json(Exceptions.UserNotFound)
+        if(e.message === Exceptions.Users.UserNotFound.message){
+            return res.status(404).json(Exceptions.Users.UserNotFound)
         }
         return res.status(500).json({
             msg : "internal server Error",
@@ -108,7 +105,7 @@ export const getUserById = async (req,res) => {
 
 export const updateUserEmail = async (req,res)=> {
     const payload = req.user
-    const {newEmail} = req.body
+    const {newEmail} = matchedData(req)
 
    
 
@@ -124,11 +121,11 @@ export const updateUserEmail = async (req,res)=> {
         return res.status(200).json(updatedUser)
         
     } catch (e) {
-        if(e.message === Exceptions.UserNotFound.msg){
-            return res.status(404).json(Exceptions.UserNotFound)
+        if(e.message === Exceptions.Users.UserNotFound.msg){
+            return res.status(404).json(Exceptions.Users.UserNotFound)
         }
-        if(e.message === Exceptions.UnAuthorised.msg){
-            return res.status(404).json(Exceptions.UnAuthorised)
+        if(e.message === Exceptions.Users.UnAuthorised.msg){
+            return res.status(404).json(Exceptions.Users.UnAuthorised)
         }
 
         return res.status(500).json({
@@ -155,11 +152,11 @@ export const updateUserStatus = async (req,res) => {
         
         return res.status(200).send(updatedUser)
     } catch (e) {
-        if(e.message === Exceptions.UserNotFound.msg){
-            return res.status(404).json(Exceptions.UserNotFound)
+        if(e.message === Exceptions.Users.UserNotFound.msg){
+            return res.status(404).json(Exceptions.Users.UserNotFound)
         }
-        if(e.message === Exceptions.UnAuthorised.msg){
-            return res.status(404).json(Exceptions.UnAuthorised)
+        if(e.message === Exceptions.Users.UnAuthorised.msg){
+            return res.status(404).json(Exceptions.Users.UnAuthorised)
         }
 
         return res.status(500).json({
@@ -173,7 +170,7 @@ export const updateUserStatus = async (req,res) => {
 
 export const updateUserPassword = async (req,res) => {
     const payload = req.user
-    const {oldPassword , newPassword} = req.body
+    const {oldPassword , newPassword} = matchedData(req)
     if(!payload.id || !mongoose.Types.ObjectId.isValid(payload.id)){
         return res.status(400).json({
             msg : "send a proper object id for proper updation"
@@ -187,11 +184,11 @@ export const updateUserPassword = async (req,res) => {
 
     
     } catch (e) {
-        if(e.message === Exceptions.UserNotFound.msg){
-            return res.status(404).json(Exceptions.UserNotFound)
+        if(e.message === Exceptions.Users.UserNotFound.msg){
+            return res.status(404).json(Exceptions.Users.UserNotFound)
         }
-        if(e.message === Exceptions.UnAuthorised.msg){
-            return res.status(404).json(Exceptions.UnAuthorised)
+        if(e.message === Exceptions.Users.UnAuthorised.msg){
+            return res.status(404).json(Exceptions.Users.UnAuthorised)
         }
         
         return res.status(500).json({
@@ -216,11 +213,11 @@ export const getUserDetails = async (req,res) => {
 
         return res.status(200).json(userDetails)
     } catch (e) {
-        if(e.message === Exceptions.UserNotFound.msg){
-            return res.status(404).json(Exceptions.UserNotFound)
+        if(e.message === Exceptions.Users.UserNotFound.msg){
+            return res.status(404).json(Exceptions.Users.UserNotFound)
         }
-        if(e.message === Exceptions.UnAuthorised.msg){
-            return res.status(404).json(Exceptions.UnAuthorised)
+        if(e.message === Exceptions.Users.UnAuthorised.msg){
+            return res.status(404).json(Exceptions.Users.UnAuthorised)
         }
         
         return res.status(500).json({
@@ -233,7 +230,7 @@ export const getUserDetails = async (req,res) => {
 }
 export const updateUserRole = async (req,res) => {
     const {id} = req.params
-    const {newRole} = req.body
+    const {newRole} = matchedData(req)
 
     if(!id || !mongoose.Types.ObjectId.isValid(id)){
         return res.status(400).json({
@@ -248,11 +245,11 @@ export const updateUserRole = async (req,res) => {
         return res.status(200).json(updatedUser)
         
     } catch (e) {
-        if(e.message === Exceptions.UserNotFound.msg){
-            return res.status(404).json(Exceptions.UserNotFound)
+        if(e.message === Exceptions.Users.UserNotFound.msg){
+            return res.status(404).json(Exceptions.Users.UserNotFound)
         }
-        if(e.message === Exceptions.UnAuthorised.msg){
-            return res.status(404).json(Exceptions.UnAuthorised)
+        if(e.message === Exceptions.Users.UnAuthorised.msg){
+            return res.status(404).json(Exceptions.Users.UnAuthorised)
         }
         
         return res.status(500).json({
@@ -277,11 +274,11 @@ export const deleteUser = async (req,res) => {
         logoutUser(req,res,"account deleted successfully!")
         
     } catch (e) {
-        if(e.message === Exceptions.UserNotFound.msg){
-            return res.status(404).json(Exceptions.UserNotFound)
+        if(e.message === Exceptions.Users.UserNotFound.msg){
+            return res.status(404).json(Exceptions.Users.UserNotFound)
         }
-        if(e.message === Exceptions.UnAuthorised.msg){
-            return res.status(404).json(Exceptions.UnAuthorised)
+        if(e.message === Exceptions.Users.UnAuthorised.msg){
+            return res.status(404).json(Exceptions.Users.UnAuthorised)
         }
         
         return res.status(500).json({
@@ -294,12 +291,14 @@ export const deleteUser = async (req,res) => {
 }
 export const logoutUser = (req,res, message) => {
     if(req.cookies.authtoken){
+        
         res.clearCookie("authtoken")
+        
         if(message){
             return res.status(200).json({msg : message})
         }
         return res.status(200).json({msg : "logged out pls login to continue"})
     }
 
-    return res.status(401).json(Exceptions.UnAuthorised)
+    return res.status(401).json(Exceptions.Users.UnAuthorised)
 } 

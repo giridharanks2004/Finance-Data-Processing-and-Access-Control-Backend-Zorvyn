@@ -48,7 +48,7 @@ const loginUser = async (userInfo) => {
         throw new Error(Exceptions.UnAuthorised.msg)
     }
 
-    const token = jwt.sign({id : savedInfo._id,email : savedInfo.email,role : savedInfo.role},process.env.JWT_SECRET,{expiresIn : "1hr"});  
+    const token = jwt.sign({id : savedInfo._id,email : savedInfo.email,role : savedInfo.role},process.env.JWT_SECRET,{expiresIn : "24hr"});  
 
     return token;
 }

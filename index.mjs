@@ -5,6 +5,7 @@ dotenv.config()
 import { dbConnect } from "./src/Utils/dbConnect.mjs"
 import cookieParser from "cookie-parser"
 import morgan from "morgan"
+import FinRouter from "./src/Routes/FinRoutes.mjs"
 import UserRouter from "./src/Routes/UserRoutes.mjs"
 
 const app = express()
@@ -17,6 +18,7 @@ app.use(express.json())
 app.use(cookieParser())
 app.use(morgan("dev"))
 app.use(UserRouter)
+app.use(FinRouter)
 
 
 app.listen(PORT,()=>{
