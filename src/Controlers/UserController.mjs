@@ -6,8 +6,9 @@ import mongoose from "mongoose"
 import { UserRoles } from "../Utils/enums.mjs"
 
 export const getAllUser = async (req, res) => {
-    
-    const users = await UserServices.getAllUser()
+    const {page = 1 , limit = 5 , status , role} = req.query
+
+    const users = await UserServices.getAllUser({page , limit , status , role})
     return res.status(200).json(users)
 
 }
@@ -52,10 +53,10 @@ export const loginUser = async (req,res) => {
         })
 
     } catch (e) {
-        if(e.message === Exceptions.Users.UserNotFound.message){
+        if(e.message === Exceptions.Users.UserNotFound.msg){
             return res.status(404).json(Exceptions.Users.UserNotFound)
         }
-        if(e.message === Exceptions.Users.UnAuthorised.message){
+        if(e.message === Exceptions.Users.UnAuthorised.msg){
             return res.status(401).json(Exceptions.Users.UnAuthorised)
         }
 
@@ -93,7 +94,7 @@ export const getUserById = async (req,res) => {
         return res.status(200).json(savedUser)
         
     } catch(e){
-        if(e.message === Exceptions.Users.UserNotFound.message){
+        if(e.message === Exceptions.Users.UserNotFound.msg){
             return res.status(404).json(Exceptions.Users.UserNotFound)
         }
         return res.status(500).json({
@@ -271,7 +272,7 @@ export const deleteUser = async (req,res) => {
     try {
         await UserServices.DeleteUser(payload.id)
 
-        logoutUser(req,res,"account deleted successfully!")
+        logoutUser(req,res,"account deleted successfully! along with all your finance records")
         
     } catch (e) {
         if(e.message === Exceptions.Users.UserNotFound.msg){

@@ -5,7 +5,7 @@ import { Exceptions } from "../Utils/exceptions.mjs";
 import jwt from "jsonwebtoken"
 import dotenv from "dotenv"
 import { UserRoles, UserStatus } from "../Utils/enums.mjs";
-
+import FinService from "./FinService.mjs";
 dotenv.config()
 
 const createUser = async (userInfo) => {
@@ -24,28 +24,49 @@ const createUser = async (userInfo) => {
     return UserResponseDTO(saved , message)
 }
 
-const getAllUser = async () => {
+const getAllUser = async (paginationInfo) => {
+    let filter = {}
+    if(paginationInfo.status){
+        filter.status = paginationInfo.status
+    }
 
-    const savedInfos = await UserDB.find({});
-
+    if(paginationInfo.role){
+        filter.role = paginationInfo.role
+    }
+    const page = Math.max(1,paginationInfo.page || 1)
+    const limit = Math.max(1,paginationInfo.limit || 10)
+    const totalDocs = await UserDB.countDocuments(filter)
+    const totalPages = Math.ceil(totalDocs / limit)
+    if(paginationInfo.page > totalPages){
+        paginationInfo.page = 1
+    }
+    const skip = (page - 1) * limit
+    const savedInfos = await UserDB.find(filter).limit(limit).skip(skip);
+    
     const abstractedSavedInfos = savedInfos.map(userInfo => UserResponseDTO(userInfo , "AbstractedUserInfo Admin View"))
 
-    return abstractedSavedInfos
+    return {
+        data : abstractedSavedInfos,
+        page : paginationInfo.page,
+        totalPages,
+        queryfiltersApplied : {
+            role : filter.role || `allowed roles [${UserRoles}]`,
+            status : filter.status || `allowed status [${UserStatus}]`,
+        }
+    }
 }
 const loginUser = async (userInfo) => {
     const savedInfo = await UserDB.findOne({email : userInfo.email})
-
-    console.log(savedInfo)
     
 
     if(!savedInfo){
-        throw new Error(Exceptions.UserNotFound.msg)
+        throw new Error(Exceptions.Users.UserNotFound.msg)
     }
 
     const IsValid = await bcrypt.compare(userInfo.password,savedInfo.password)
 
     if(!IsValid){
-        throw new Error(Exceptions.UnAuthorised.msg)
+        throw new Error(Exceptions.Users.UnAuthorised.msg)
     }
 
     const token = jwt.sign({id : savedInfo._id,email : savedInfo.email,role : savedInfo.role},process.env.JWT_SECRET,{expiresIn : "24hr"});  
@@ -58,7 +79,7 @@ const getUserById = async (id) => {
     const savedInfo = await UserDB.findById(id)
 
     if(!savedInfo){
-        throw new Error(Exceptions.UserNotFound.msg)
+        throw new Error(Exceptions.Users.UserNotFound.msg)
     }
 
     return UserResponseDTO(savedInfo,"UserFound")
@@ -68,7 +89,7 @@ const UpdateUserRole = async (id , newRole) => {
     const savedInfo = await UserDB.findById(id)
 
     if(!savedInfo){
-        throw new Error(Exceptions.UserNotFound.msg)
+        throw new Error(Exceptions.Users.UserNotFound.msg)
     }
 
     savedInfo.role = newRole
@@ -82,7 +103,7 @@ const UpdateStatus = async (id) => {
     const savedInfo = await UserDB.findById(id)
     
     if(!savedInfo){
-        throw new Error(Exceptions.UserNotFound.msg)
+        throw new Error(Exceptions.Users.UserNotFound.msg)
     }
 
     if(savedInfo.status === UserStatus[0]){
@@ -101,13 +122,13 @@ const UpdatePassword = async (id , oldPass, newPass) => {
     const savedInfo = await UserDB.findById(id)
 
     if(!savedInfo){
-        throw new Error(Exceptions.UserNotFound.msg)
+        throw new Error(Exceptions.Users.UserNotFound.msg)
     }
     
     const passCheck = await bcrypt.compare(oldPass,savedInfo.password)
 
     if(!passCheck){
-        throw new Error(Exceptions.UnAuthorised.msg)
+        throw new Error(Exceptions.Users.UnAuthorised.msg)
     }
 
     savedInfo.password = await bcrypt.hash(newPass,10)
@@ -124,7 +145,7 @@ const UpdateEmail = async (id, newEmail) => {
     const savedInfo = await UserDB.findById(id)
 
     if(!savedInfo){
-        throw new Error(Exceptions.UserNotFound.msg)
+        throw new Error(Exceptions.Users.UserNotFound.msg)
     }
 
     savedInfo.email = newEmail
@@ -136,8 +157,9 @@ const UpdateEmail = async (id, newEmail) => {
 
 const DeleteUser = async (id) => {
     const deletedUser = await UserDB.findByIdAndDelete(id)
+    await FinService.deleteAllRecords(id)
     if(!deletedUser) {
-        throw new Error(Exceptions.UserNotFound.msg)
+        throw new Error(Exceptions.Users.UserNotFound.msg)
     }
 }
 

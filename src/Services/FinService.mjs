@@ -1,13 +1,50 @@
+
 import FinanceDB from "../Models/FInanceModel.mjs";
+import { ExpenseCategories, FinanceType, SupportedCurrencies } from "../Utils/enums.mjs";
 import { Exceptions } from "../Utils/exceptions.mjs";
 
-const getAllFinRecords = async (Userid) => {
-    if(!Userid){
-        const AllfinRecords = await FinanceDB.find({})
-        return AllfinRecords
+const getAllFinRecords = async (Userid,paginationInfo) => {
+    let filter = {}
+    let AllfinRecords = []
+    if(paginationInfo.category){
+        filter.Category = paginationInfo.category
     }
-    const finRecords = await FinanceDB.find({userId : Userid})
-    return finRecords
+    if(paginationInfo.type){
+        filter.RecordType = paginationInfo.type
+    }
+    if(paginationInfo.currency){
+        filter.currency = paginationInfo.currency
+    }
+    let page = Math.max(1,paginationInfo.page || 1)
+    const limit = Math.max(1,paginationInfo.limit || 5)
+    
+
+    const totalPages = Math.ceil(await FinanceDB.countDocuments(filter) / limit)
+
+    if(page > totalPages){
+        page = 1
+    }
+
+    const skip = (page - 1) * limit
+
+    const result = {
+        data :  [],
+        currentPage : page,
+        totalPages,
+        queryFiltersApplied : {
+            type : filter.RecordType || `allowed types [${FinanceType}]`,
+            category : filter.Category || `allowed categories [${ExpenseCategories}]`,
+            currency : filter.currency || `allowed currencies [${SupportedCurrencies}]`
+        }
+    }
+    if(!Userid){
+        AllfinRecords = await FinanceDB.find(filter).limit(limit).skip(skip)
+        result.data = AllfinRecords
+        return result
+    }
+    AllfinRecords = await FinanceDB.find({userId : Userid,...filter}).limit(limit).skip(skip)
+    result.data = AllfinRecords
+    return result
 }
 
 const createFinanceRecord = async (UserId, newRecord) => {
@@ -78,4 +115,19 @@ const updateDescription = async (RecordId , UserId , newDesc) => {
         throw new Error(e.message)
     }
 }
-export default {getAllFinRecords,createFinanceRecord,updateAmount,updateRecordType,updateCategory,updateDescription}
+
+const deleteAllRecords = async (id) => {
+    try{
+        await FinanceDB.deleteMany({userId : id})
+    } catch(e) {
+        throw new Error(e.message)
+    }
+}
+const DeleteFinance = async (userId ,recordid) => {
+    const deletedRecord = await FinanceDB.deleteOne({_id : recordid , userId : userId})
+    console.log(deletedRecord)
+    if(!deletedRecord) {
+        throw new Error(Exceptions.Finance.FinanceRecordNotFound.msg)
+    }
+}
+export default {getAllFinRecords,createFinanceRecord,updateAmount,updateRecordType,updateCategory,updateDescription,deleteAllRecords,DeleteFinance}
