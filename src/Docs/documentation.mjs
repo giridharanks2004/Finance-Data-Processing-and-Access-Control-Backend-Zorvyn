@@ -59,10 +59,12 @@
  *             properties:
  *               email:
  *                 type: string
+ *                 example: iamgiridharanks@gmail.com
  *               password:
  *                 type: string
  *                 minLength: 8
  *                 maxLength: 15
+ *                 example: 12345678
  *     responses:
  *       200:
  *         description: Login success
