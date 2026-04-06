@@ -10,7 +10,7 @@ const options = {
     },
     servers: [
       {
-        url: "http://localhost:3006",
+        url: "https://finance-data-processing-and-access-wx3s.onrender.com/",
       },
     ],
 
