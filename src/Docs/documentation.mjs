@@ -299,15 +299,41 @@
  *         name: page
  *         schema:
  *           type: integer
+ *           default: 1
+ *         description: Page number
+ *
  *       - in: query
  *         name: limit
  *         schema:
  *           type: integer
+ *           default: 3
+ *         description: Number of records per page
+ *
+ *       - in: query
+ *         name: category
+ *         schema:
+ *           type: string
+ *           enum: [food, transport, other]
+ *         description: Filter by expense category
+ *
+ *       - in: query
+ *         name: type
+ *         schema:
+ *           type: string
+ *           enum: [EXPENSE, INCOME]
+ *         description: Filter by finance type
+ *
+ *       - in: query
+ *         name: currency
+ *         schema:
+ *           type: string
+ *           enum: [INR]
+ *         description: Filter by currency
+ *
  *     responses:
  *       200:
  *         description: Finance list
  */
-
 /**
  * @swagger
  * /api/users/me/finances/{id}/amount:
