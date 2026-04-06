@@ -72,7 +72,6 @@ export const getUserById = async (req,res) => {
         const {id} = req.params
 
         const  payload = req.user; 
-        console.log(payload)
         let savedUser = {}
         
         if(!id || !mongoose.Types.ObjectId.isValid(id)){

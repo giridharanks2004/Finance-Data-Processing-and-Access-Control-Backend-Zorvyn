@@ -1,5 +1,6 @@
 import dotenv from "dotenv"
 import { validationResult } from "express-validator"
+import mongoose from "mongoose"
 
 dotenv.config()
 
@@ -40,4 +41,11 @@ export const ValidationResultCheck = (req , res , next) => {
     }
 
     next()
+}
+
+export const CheckObjectId = (id) => {
+    if(!mongoose.Types.ObjectId.isValid(id)){
+        return false
+    }
+    return true
 }

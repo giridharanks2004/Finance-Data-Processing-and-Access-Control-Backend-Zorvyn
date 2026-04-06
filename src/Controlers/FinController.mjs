@@ -3,13 +3,7 @@ import FinService from "../Services/FinService.mjs";
 import { UserRoles } from "../Utils/enums.mjs";
 import { matchedData } from "express-validator";
 import { Exceptions } from "../Utils/exceptions.mjs";
-
-const CheckObjectId = (id) => {
-    if(!mongoose.Types.ObjectId.isValid(id)){
-        return false
-    }
-    return true
-}
+import { CheckObjectId } from "../Utils/middlewares.mjs";
 
 export const getAllFinRecords = async (req,res) => {
     const payload = req.user
